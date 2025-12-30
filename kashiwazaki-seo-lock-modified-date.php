@@ -3,7 +3,7 @@
  * Plugin Name: Kashiwazaki SEO Lock Modified Date
  * Plugin URI: https://www.tsuyoshikashiwazaki.jp
  * Description: WordPress投稿の更新日（post_modified）をロックし、SEO最適化のために更新日を意図的にコントロールできます。軽微な修正時に更新日を変えず、必要な時だけ手動で変更可能。
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: 柏崎剛 (Tsuyoshi Kashiwazaki)
  * Author URI: https://www.tsuyoshikashiwazaki.jp/profile/
  * License: GPL v2 or later
@@ -26,7 +26,7 @@ class Kashiwazaki_SEO_Lock_Modified_Date {
     /**
      * プラグインバージョン
      */
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
 
     /**
      * インスタンス

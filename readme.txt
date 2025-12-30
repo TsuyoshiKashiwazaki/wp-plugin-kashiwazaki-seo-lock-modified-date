@@ -3,7 +3,7 @@ Contributors: tsuyoshikashiwazaki
 Tags: seo, modified date, post date, update date, lock date
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,12 @@ SEO対策研究室（https://www.tsuyoshikashiwazaki.jp）で開発されたプ�
 4. 経過時間の表示
 
 == Changelog ==
+
+= 1.0.1 =
+* デフォルトロック設定機能を追加（設定画面からON/OFF切り替え可能）
+* 一括ロック/解除機能を追加（投稿一覧のバルクアクション）
+* 設定画面から全投稿を一括ロック/解除する機能を追加
+* 設定メニューをトップレベルメニューに変更（位置81）
 
 = 1.0.0 =
 * 初回リリース

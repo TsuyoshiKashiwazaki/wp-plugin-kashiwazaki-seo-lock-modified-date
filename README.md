@@ -3,7 +3,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/License-GPL--2.0--or--later-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/Version-1.0.0--dev-orange.svg)](https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-lock-modified-date/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)](https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-lock-modified-date/releases)
 
 WordPress投稿の更新日（post_modified）をロックし、SEO最適化のために更新日を意図的にコントロールできます。軽微な修正時に更新日を変えず、必要な時だけ手動で変更可能。
 
@@ -17,7 +17,8 @@ WordPress投稿の更新日（post_modified）をロックし、SEO最適化の�
 - **メタボックス表示**: 編集画面で簡単に設定
 - **日時ピッカー**: 任意の日時に更新日を設定
 - **公開日同期**: ワンクリックで公開日と同じに設定
-- **デフォルトロック**: 新規投稿は自動的にロック状態
+- **デフォルトロック設定**: 新規投稿のデフォルトロック状態を設定で切り替え可能
+- **一括ロック/解除**: 投稿一覧や設定画面から全投稿を一括操作
 - **プラグイン一覧リンク**: 設定画面への直接アクセス
 
 ## クイックスタート
@@ -73,15 +74,6 @@ WordPress投稿の更新日（post_modified）をロックし、SEO最適化の�
 
 - **メタキー**: `_kseo_lock_modified_date`
 - **オプション**: `kseo_lock_modified_date_post_types`
-
-## 更新履歴
-
-### バージョン 1.0.0 - 2025-10-26
-- 初回リリース
-- 更新日ロック機能
-- 手動更新日変更機能
-- 投稿タイプ選択機能
-- プラグイン一覧への設定リンク追加
 
 ## ライセンス
 

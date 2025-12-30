@@ -79,10 +79,12 @@ class KSEO_Meta_Box {
         // nonceフィールドの追加
         wp_nonce_field('kseo_lock_modified_date_nonce', 'kseo_lock_modified_date_nonce_field');
 
-        // 現在のロック状態を取得（デフォルトはON）
+        // 現在のロック状態を取得
         $is_locked = get_post_meta($post->ID, $this->meta_key_lock, true);
         if ($is_locked === '') {
-            $is_locked = '1'; // デフォルトでロック状態
+            // デフォルト設定を参照
+            $default_locked = get_option('kseo_lock_modified_date_default_locked', '1');
+            $is_locked = $default_locked;
         }
 
         // 現在の更新日時
@@ -216,7 +218,7 @@ class KSEO_Meta_Box {
             'kseo-admin-js',
             $this->plugin_url . 'assets/js/admin.js',
             array('jquery'),
-            '1.0.0',
+            '1.0.1',
             true
         );
 
