@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インストール・初期設定 - Kashiwazaki SEO Lock Modified Date マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニュー">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Lock Modified Date</h2>
+        <span class="version">v1.0.1</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li class="active"><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="lock-usage.html">使い方</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>インストール・初期設定</h1>
+    <p class="lead">Kashiwazaki SEO Lock Modified Date のインストール方法と、更新日ロック機能を利用するための基本設定を説明します。</p>
+
+    <h2>インストール手順</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>WordPress管理画面から <strong>プラグイン &gt; 新規追加</strong> に移動し、「Kashiwazaki SEO Lock Modified Date」を検索します。または、プラグインのZIPファイルを <strong>プラグイン &gt; 新規追加 &gt; プラグインのアップロード</strong> からアップロードします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>「今すぐインストール」をクリックし、インストール完了後「有効化」をクリックします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>有効化後、投稿エディタ画面に「更新日ロック」メタボックスが自動的に追加されます。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>有効化直後はすべての投稿のロックが解除された状態です。必要な投稿に対して個別にロックを設定するか、一括ロック機能を利用してください。</p>
+    </div>
+
+        <figure class="screenshot">
+            <img src="images/screenshots/00-menu-location.png" alt="管理画面メニューの位置" class="lightbox-trigger">
+            <figcaption>管理画面の左メニューにプラグインが追加されます</figcaption>
+        </figure>
+
+    <h2>メタボックスの確認</h2>
+
+    <p>プラグインの有効化後、投稿の編集画面に「更新日ロック」メタボックスが表示されていることを確認します。</p>
+
+    <h3>メタボックスの構成要素</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">要素</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ロックトグル</td>
+                <td>更新日のロック状態をオン/オフで切り替えます。オンにすると、投稿を保存しても更新日が変更されません。</td>
+            </tr>
+            <tr>
+                <td>現在の更新日表示</td>
+                <td>現在設定されている post_modified の日時を表示します。</td>
+            </tr>
+            <tr>
+                <td>日付変更フィールド</td>
+                <td>更新日を手動で任意の日時に変更するための入力フィールドです。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">注意</div>
+        <p>クラシックエディタとブロックエディタ（Gutenberg）の両方でメタボックスが利用できます。ブロックエディタの場合、メタボックスは画面下部のクラシックメタボックス領域に表示されます。</p>
+    </div>
+
+    <h2>基本的な運用方針</h2>
+
+    <p>本プラグインの効果を最大化するための基本的な運用方針を以下に示します。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">編集の種類</th>
+                <th>推奨する操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>誤字・脱字の修正</td>
+                <td>ロックをオンにして保存。更新日を変えない。</td>
+            </tr>
+            <tr>
+                <td>フォーマット・レイアウト調整</td>
+                <td>ロックをオンにして保存。更新日を変えない。</td>
+            </tr>
+            <tr>
+                <td>内部リンクの追加・修正</td>
+                <td>ロックをオンにして保存。更新日を変えない。</td>
+            </tr>
+            <tr>
+                <td>コンテンツの大幅なリライト</td>
+                <td>ロックをオフにして保存。更新日を自動更新させる。</td>
+            </tr>
+            <tr>
+                <td>最新情報への更新</td>
+                <td>ロックをオフにして保存、または手動で日付を設定。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">補足</div>
+        <p>本プラグインはフロントエンド出力（JSON-LD、メタタグ）を一切行いません。管理画面でのみ動作するため、サイトの表示速度に影響を与えません。</p>
+    </div>
+
+    <nav class="page-nav">
+        <a href="index.html" class="prev">&laquo; 概要</a>
+        <a href="lock-usage.html" class="next">使い方 &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.1</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>
