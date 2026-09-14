@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Lock Modified Date</h2>
-        <span class="version">v1.0.1</span>
+        <span class="version">v1.0.2</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -46,13 +46,13 @@
     <div class="step">
         <span class="step-number">3</span>
         <div class="step-body">
-            <p>有効化後、投稿エディタ画面に「更新日ロック」メタボックスが自動的に追加されます。</p>
+            <p>有効化後、対象の投稿タイプ（初期状態は投稿と固定ページ）の編集画面に「Kashiwazaki SEO Lock Modified Date」メタボックスが追加されます。対象の投稿タイプは設定画面で変更できます。</p>
         </div>
     </div>
 
     <div class="callout callout-tip">
         <div class="callout-title">ヒント</div>
-        <p>有効化直後はすべての投稿のロックが解除された状態です。必要な投稿に対して個別にロックを設定するか、一括ロック機能を利用してください。</p>
+        <p>設定「デフォルトでロックする」は初期状態で ON です。ロック状態がまだ記録されていない既存の投稿も、この設定に従ってロックされます。ロックしたくない投稿は、メタボックスで個別に解除するか、一括ロック解除を利用してください。</p>
     </div>
 
         <figure class="screenshot">
@@ -62,7 +62,7 @@
 
     <h2>メタボックスの確認</h2>
 
-    <p>プラグインの有効化後、投稿の編集画面に「更新日ロック」メタボックスが表示されていることを確認します。</p>
+    <p>プラグインの有効化後、投稿の編集画面に「Kashiwazaki SEO Lock Modified Date」メタボックスが表示されていることを確認します。</p>
 
     <h3>メタボックスの構成要素</h3>
 
@@ -75,23 +75,23 @@
         </thead>
         <tbody>
             <tr>
-                <td>ロックトグル</td>
-                <td>更新日のロック状態をオン/オフで切り替えます。オンにすると、投稿を保存しても更新日が変更されません。</td>
+                <td>更新日をロックする</td>
+                <td>ロックの ON/OFF を切り替えます。切り替えた時点で保存されます。ON の公開済み投稿は、保存しても更新日が変わりません。</td>
             </tr>
             <tr>
-                <td>現在の更新日表示</td>
-                <td>現在設定されている post_modified の日時を表示します。</td>
+                <td>現在の更新日時</td>
+                <td>保存されている post_modified の日時を表示します。ブロックエディタで投稿を保存したあとも自動で最新の値に更新されます。</td>
             </tr>
             <tr>
-                <td>日付変更フィールド</td>
-                <td>更新日を手動で任意の日時に変更するための入力フィールドです。</td>
+                <td>更新日を手動で変更</td>
+                <td>日時を選んで「更新日を変更」を押すと、その場で更新日が変わり、ロックが ON になります。「公開日と同じにする」で公開日時（秒まで）を指定できます。</td>
             </tr>
         </tbody>
     </table>
 
     <div class="callout callout-warning">
         <div class="callout-title">注意</div>
-        <p>クラシックエディタとブロックエディタ（Gutenberg）の両方でメタボックスが利用できます。ブロックエディタの場合、メタボックスは画面下部のクラシックメタボックス領域に表示されます。</p>
+        <p>クラシックエディタとブロックエディタ（Gutenberg）の両方でメタボックスが利用できます。ブロックエディタでは、設定サイドバーまたは画面下部のメタボックス領域に表示されます。</p>
     </div>
 
     <h2>基本的な運用方針</h2>
@@ -108,23 +108,23 @@
         <tbody>
             <tr>
                 <td>誤字・脱字の修正</td>
-                <td>ロックをオンにして保存。更新日を変えない。</td>
+                <td>ロック ON のまま保存。更新日は変わりません。</td>
             </tr>
             <tr>
                 <td>フォーマット・レイアウト調整</td>
-                <td>ロックをオンにして保存。更新日を変えない。</td>
+                <td>ロック ON のまま保存。更新日は変わりません。</td>
             </tr>
             <tr>
                 <td>内部リンクの追加・修正</td>
-                <td>ロックをオンにして保存。更新日を変えない。</td>
+                <td>ロック ON のまま保存。更新日は変わりません。</td>
             </tr>
             <tr>
                 <td>コンテンツの大幅なリライト</td>
-                <td>ロックをオフにして保存。更新日を自動更新させる。</td>
+                <td>保存後に「更新日を手動で変更」で現在の日時を指定する（ロックは ON のまま）。または、ロックを解除してから保存する。</td>
             </tr>
             <tr>
                 <td>最新情報への更新</td>
-                <td>ロックをオフにして保存、または手動で日付を設定。</td>
+                <td>「更新日を手動で変更」で日時を指定する。押した時点で反映され、ロックが ON になります。</td>
             </tr>
         </tbody>
     </table>
@@ -141,7 +141,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.1</p>
+        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.2</p>
     </footer>
 </main>
 

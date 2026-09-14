@@ -1,0 +1,62 @@
+# AI / development tool settings
+CLAUDE.md
+.codex
+.cursor/
+.aider*
+.copilot/
+.github/copilot/
+
+# Temporary work files
+.playwright-mcp/
+.tmp/
+/-f
+/-t
+/-t.progress
+
+# Screenshots and scratch files at the root
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+/*.bmp
+/*.md.bak
+
+# Dependencies (not distributed)
+/vendor/
+/node_modules/
+composer.json
+composer.lock
+package.json
+package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test-*.js
+test-*.php
+tests/
+
+# Build
+/build/
+/dist/
+*.log
+*.tmp
+*.bak
+
+# PHPUnit
+.phpunit.result.cache
+.phpunit.cache/
+
+# WordPress
+wp-config.php

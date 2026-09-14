@@ -13,23 +13,14 @@ if (!defined('ABSPATH')) {
 /**
  * Class KSEO_Meta_Box
  *
- * 投稿編集画面のメタボックス表示と保存を管理
+ * 投稿編集画面のメタボックス表示と、ロック切り替え・手動変更の AJAX 処理を管理
  */
 class KSEO_Meta_Box {
 
     /**
-     * メタキー（ロック状態）
-     *
-     * @var string
+     * AJAX 用 nonce のアクション名
      */
-    private $meta_key_lock = '_kseo_lock_modified_date';
-
-    /**
-     * オプション名
-     *
-     * @var string
-     */
-    private $option_name = 'kseo_lock_modified_date_post_types';
+    const NONCE_ACTION = 'kseo_lock_modified_date_ajax';
 
     /**
      * プラグインURL
@@ -47,18 +38,17 @@ class KSEO_Meta_Box {
         $this->plugin_url = $plugin_url;
 
         add_action('add_meta_boxes', array($this, 'add_meta_box'));
-        add_action('save_post', array($this, 'save_meta_box'), 10, 2);
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action('wp_ajax_kseo_set_lock', array($this, 'ajax_set_lock'));
         add_action('wp_ajax_kseo_update_modified_date', array($this, 'ajax_update_modified_date'));
+        add_action('wp_ajax_kseo_get_modified_state', array($this, 'ajax_get_modified_state'));
     }
 
     /**
      * メタボックスの追加
      */
     public function add_meta_box() {
-        $selected_post_types = get_option($this->option_name, array('post', 'page'));
-
-        foreach ($selected_post_types as $post_type) {
+        foreach (KSEO_Lock_State::enabled_post_types() as $post_type) {
             add_meta_box(
                 'kseo_lock_modified_date',
                 'Kashiwazaki SEO Lock Modified Date',
@@ -71,154 +61,134 @@ class KSEO_Meta_Box {
     }
 
     /**
+     * 画面表示用の状態を作る
+     *
+     * @param WP_Post $post 投稿
+     * @return array
+     */
+    public static function build_state($post) {
+        $post = get_post($post->ID);
+        $published = KSEO_Lock_State::is_published_for_lock($post);
+        $locked = KSEO_Lock_State::stored_state($post->ID);
+
+        $modified_ts = get_post_modified_time('U', true, $post);
+        if (false === $modified_ts) {
+            $modified_ts = get_post_modified_time('U', false, $post);
+        }
+
+        return array(
+            'locked' => $locked,
+            'published' => $published,
+            'lock_effective' => $published && $locked,
+            'modified_display' => get_post_modified_time('Y年n月j日 H:i', false, $post),
+            'modified_input' => get_post_modified_time('Y-m-d\TH:i', false, $post),
+            'time_diff' => $modified_ts ? sprintf('%s前', human_time_diff((int) $modified_ts, time())) : '',
+            'post_date_display' => get_post_time('Y年n月j日 H:i', false, $post),
+            'max_input' => wp_date('Y-m-d\TH:i'),
+        );
+    }
+
+    /**
      * メタボックスのレンダリング
      *
      * @param WP_Post $post 投稿オブジェクト
      */
     public function render_meta_box($post) {
-        // nonceフィールドの追加
-        wp_nonce_field('kseo_lock_modified_date_nonce', 'kseo_lock_modified_date_nonce_field');
-
-        // 現在のロック状態を取得
-        $is_locked = get_post_meta($post->ID, $this->meta_key_lock, true);
-        if ($is_locked === '') {
-            // デフォルト設定を参照
-            $default_locked = get_option('kseo_lock_modified_date_default_locked', '1');
-            $is_locked = $default_locked;
-        }
-
-        // 現在の更新日時
-        $modified_date_formatted = get_post_modified_time('Y年n月j日 H:i', false, $post);
-
-        // 公開日
-        $post_date = get_post_field('post_date', $post->ID);
-
-        // 経過時間
-        $time_diff = human_time_diff(get_post_modified_time('U', false, $post), current_time('timestamp'));
-
+        $state = self::build_state($post);
         ?>
-        <div class="kseo-lock-modified-date-meta-box">
+        <div class="kseo-lock-modified-date-meta-box" id="kseo-lmd-box" data-post-id="<?php echo esc_attr($post->ID); ?>">
             <p>
                 <label>
-                    <input type="checkbox"
-                           name="kseo_lock_modified_date"
-                           value="1"
-                           <?php checked($is_locked, '1'); ?>>
+                    <input type="checkbox" id="kseo_lock_toggle" <?php checked($state['locked']); ?>>
                     <strong>更新日をロックする</strong>
                 </label>
             </p>
             <p class="description">
-                チェックを入れると、投稿を編集・保存しても更新日が変わりません。<br>
-                チェックを外すと、通常通り更新日が変わります。
+                ON: 投稿を保存しても更新日は変わりません。<br>
+                OFF: 保存するたびに、保存した日時が更新日になります。<br>
+                切り替えはその場で保存されます（投稿の保存は不要です）。
             </p>
+            <p class="kseo-unpublished-note" id="kseo_unpublished_note"<?php echo $state['published'] ? ' hidden' : ''; ?>>
+                この投稿はまだ公開されていません。ロックは公開後に有効になります（公開操作をした場合はその時点の日時が更新日になります）。
+            </p>
+            <div id="kseo_lock_message" class="kseo-message" role="status" aria-live="polite"></div>
 
-            <hr style="margin: 15px 0;">
+            <hr>
 
             <div class="kseo-current-modified-date">
                 <p><strong>現在の更新日時:</strong></p>
-                <p style="margin: 5px 0 10px 0;"><?php echo esc_html($modified_date_formatted); ?></p>
-                <p style="color: #666; font-size: 12px;"><?php echo esc_html($time_diff); ?>前</p>
+                <p class="kseo-current-value" id="kseo_current_modified"><?php echo esc_html($state['modified_display']); ?></p>
+                <p class="kseo-current-diff" id="kseo_current_diff"><?php echo esc_html($state['time_diff']); ?></p>
             </div>
 
-            <hr style="margin: 15px 0;">
+            <hr>
 
             <div class="kseo-manual-update">
                 <p><strong>更新日を手動で変更:</strong></p>
-                <p style="margin: 5px 0;">
+                <p class="description">
+                    日時を選んで「更新日を変更」を押すと、その場で反映されます（投稿の保存は不要です）。変更するとロックが自動で ON になります。
+                </p>
+                <p>
                     <input type="datetime-local"
                            id="kseo_manual_modified_date"
-                           value="<?php echo esc_attr(get_post_modified_time('Y-m-d\TH:i', false, $post)); ?>"
-                           style="width: 100%;">
+                           value="<?php echo esc_attr($state['modified_input']); ?>"
+                           max="<?php echo esc_attr($state['max_input']); ?>"
+                           <?php disabled(!$state['published']); ?>>
                 </p>
-                <p style="margin: 10px 0;">
-                    <button type="button"
-                            id="kseo_set_to_post_date"
-                            class="button button-secondary"
-                            style="width: 100%;"
-                            data-post-date="<?php echo esc_attr(date('Y-m-d\TH:i', strtotime($post_date))); ?>">
+                <p class="kseo-pending" id="kseo_manual_pending" hidden>まだ反映されていません。「更新日を変更」を押してください。</p>
+                <p>
+                    <button type="button" id="kseo_set_to_post_date" class="button button-secondary" <?php disabled(!$state['published']); ?>>
                         公開日と同じにする
                     </button>
                 </p>
-                <p style="margin: 10px 0;">
-                    <button type="button"
-                            id="kseo_update_modified_date"
-                            class="button button-primary"
-                            style="width: 100%;"
-                            data-post-id="<?php echo esc_attr($post->ID); ?>">
+                <p>
+                    <button type="button" id="kseo_update_modified_date" class="button button-primary" <?php disabled(!$state['published']); ?>>
                         更新日を変更
                     </button>
                 </p>
-                <div id="kseo_update_message" style="margin-top: 10px;"></div>
+                <div id="kseo_update_message" class="kseo-message" role="status" aria-live="polite"></div>
             </div>
         </div>
 
         <style>
-            .kseo-lock-modified-date-meta-box {
-                font-size: 13px;
-            }
-            .kseo-lock-modified-date-meta-box hr {
-                border: none;
-                border-top: 1px solid #ddd;
-            }
-            .kseo-current-modified-date p {
-                margin: 0;
-            }
-            #kseo_update_message.success {
-                color: #46b450;
-                font-weight: bold;
-            }
-            #kseo_update_message.error {
-                color: #dc3232;
-                font-weight: bold;
-            }
+            .kseo-lock-modified-date-meta-box { font-size: 13px; }
+            .kseo-lock-modified-date-meta-box hr { border: none; border-top: 1px solid #ddd; margin: 15px 0; }
+            .kseo-lock-modified-date-meta-box p { margin: 6px 0; }
+            .kseo-lock-modified-date-meta-box input[type="datetime-local"],
+            .kseo-lock-modified-date-meta-box .button { width: 100%; }
+            .kseo-current-modified-date p { margin: 0; }
+            .kseo-current-value { margin: 5px 0 2px !important; }
+            .kseo-current-diff { color: #666; font-size: 12px; }
+            .kseo-unpublished-note { background: #fcf9e8; border-left: 4px solid #dba617; padding: 6px 8px; }
+            .kseo-pending { color: #b32d2e; }
+            .kseo-message.success { color: #1a7f37; font-weight: bold; }
+            .kseo-message.error { color: #d63638; font-weight: bold; }
         </style>
         <?php
     }
 
     /**
-     * メタボックスの保存
-     *
-     * @param int     $post_id 投稿ID
-     * @param WP_Post $post    投稿オブジェクト
-     */
-    public function save_meta_box($post_id, $post) {
-        // nonceチェック
-        if (!isset($_POST['kseo_lock_modified_date_nonce_field']) ||
-            !wp_verify_nonce($_POST['kseo_lock_modified_date_nonce_field'], 'kseo_lock_modified_date_nonce')) {
-            return;
-        }
-
-        // 自動保存の場合は処理しない
-        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-            return;
-        }
-
-        // 権限チェック
-        if (!current_user_can('edit_post', $post_id)) {
-            return;
-        }
-
-        // チェックボックスの値を保存
-        $is_locked = isset($_POST['kseo_lock_modified_date']) ? '1' : '0';
-        update_post_meta($post_id, $this->meta_key_lock, $is_locked);
-    }
-
-    /**
-     * スクリプトとスタイルの読み込み
+     * スクリプトの読み込み
      *
      * @param string $hook 現在の管理画面ページ
      */
     public function enqueue_scripts($hook) {
-        // 投稿編集画面のみ
         if ($hook !== 'post.php' && $hook !== 'post-new.php') {
             return;
         }
+
+        $screen = get_current_screen();
+        if (!$screen || !KSEO_Lock_State::is_enabled_type($screen->post_type)) {
+            return;
+        }
+
+        $script_path = KSEO_PLUGIN_DIR . 'assets/js/admin.js';
 
         wp_enqueue_script(
             'kseo-admin-js',
             $this->plugin_url . 'assets/js/admin.js',
             array('jquery'),
-            '1.0.1',
+            file_exists($script_path) ? (string) filemtime($script_path) : KSEO_VERSION,
             true
         );
 
@@ -227,77 +197,141 @@ class KSEO_Meta_Box {
             'kseoData',
             array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('kseo_update_modified_date_nonce')
+                'nonce' => wp_create_nonce(self::NONCE_ACTION),
             )
         );
     }
 
     /**
-     * AJAX: 手動更新日変更
+     * 日時入力（datetime-local）を厳密に解釈する
+     *
+     * @param string $raw 入力値（Y-m-d\TH:i または Y-m-d\TH:i:s）
+     * @return DateTimeImmutable|null
      */
-    public function ajax_update_modified_date() {
-        // nonceチェック
-        check_ajax_referer('kseo_update_modified_date_nonce', 'nonce');
-
-        // パラメータ取得
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        $new_date = isset($_POST['new_date']) ? sanitize_text_field($_POST['new_date']) : '';
-
-        // 権限チェック
-        if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error(array('message' => '権限がありません。'));
-            return;
+    public static function parse_input_datetime($raw) {
+        foreach (array('Y-m-d\TH:i:s', 'Y-m-d\TH:i') as $format) {
+            $datetime = DateTimeImmutable::createFromFormat('!' . $format, $raw, wp_timezone());
+            $errors = DateTimeImmutable::getLastErrors();
+            $has_errors = is_array($errors) && ($errors['warning_count'] > 0 || $errors['error_count'] > 0);
+            if (false !== $datetime && !$has_errors && $datetime->format($format) === $raw) {
+                return $datetime;
+            }
         }
-
-        // 日付の検証
-        $timestamp = strtotime($new_date);
-        if ($timestamp === false) {
-            wp_send_json_error(array('message' => '無効な日時形式です。'));
-            return;
-        }
-
-        // 日時をWordPress形式に変換
-        $formatted_date = date('Y-m-d H:i:s', $timestamp);
-        $formatted_date_gmt = get_gmt_from_date($formatted_date);
-
-        // 投稿の更新日を直接更新
-        global $wpdb;
-        $result = $wpdb->update(
-            $wpdb->posts,
-            array(
-                'post_modified' => $formatted_date,
-                'post_modified_gmt' => $formatted_date_gmt
-            ),
-            array('ID' => $post_id),
-            array('%s', '%s'),
-            array('%d')
-        );
-
-        if ($result === false) {
-            wp_send_json_error(array('message' => '更新に失敗しました。'));
-            return;
-        }
-
-        // キャッシュをクリア
-        clean_post_cache($post_id);
-
-        // 新しい表示用の日時を取得
-        $new_modified_date = get_post_modified_time('Y年n月j日 H:i', false, $post_id);
-        $time_diff = human_time_diff(get_post_modified_time('U', false, $post_id), current_time('timestamp'));
-
-        wp_send_json_success(array(
-            'message' => '更新日を変更しました。',
-            'new_date' => $new_modified_date,
-            'time_diff' => $time_diff . '前'
-        ));
+        return null;
     }
 
     /**
-     * メタキーを取得
+     * AJAX 共通: リクエストの投稿を検証して返す
      *
-     * @return string
+     * @return WP_Post 失敗時は JSON エラーを返して終了
      */
-    public function get_meta_key_lock() {
-        return $this->meta_key_lock;
+    private function verify_ajax_post() {
+        if (!check_ajax_referer(self::NONCE_ACTION, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'セッションの有効期限が切れた可能性があります。ページを再読み込みしてください。'), 403);
+        }
+
+        $post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+        $post = $post_id ? get_post($post_id) : null;
+
+        if (!$post || 'revision' === $post->post_type) {
+            wp_send_json_error(array('message' => '投稿が見つかりません。'), 404);
+        }
+
+        if (!current_user_can('edit_post', $post->ID)) {
+            wp_send_json_error(array('message' => '権限がありません。'), 403);
+        }
+
+        if (!KSEO_Lock_State::is_enabled_type($post->post_type)) {
+            wp_send_json_error(array('message' => 'この投稿タイプは設定で対象外になっています。'), 400);
+        }
+
+        return $post;
+    }
+
+    /**
+     * AJAX: ロックの切り替え（その場で保存）
+     */
+    public function ajax_set_lock() {
+        $post = $this->verify_ajax_post();
+
+        $locked = isset($_POST['locked']) && '1' === sanitize_text_field(wp_unslash($_POST['locked']));
+        KSEO_Lock_State::set_state($post->ID, $locked);
+
+        $state = self::build_state($post);
+        if ($locked) {
+            $state['message'] = $state['published']
+                ? 'ロックを有効にしました。保存しても更新日は変わりません。'
+                : 'ロックを有効にしました（公開後に有効になります）。';
+        } else {
+            $state['message'] = 'ロックを解除しました。次に保存したときに更新日が変わります。';
+        }
+
+        wp_send_json_success($state);
+    }
+
+    /**
+     * AJAX: 現在の状態を返す（保存後の表示同期用）
+     */
+    public function ajax_get_modified_state() {
+        $post = $this->verify_ajax_post();
+        wp_send_json_success(self::build_state($post));
+    }
+
+    /**
+     * AJAX: 更新日の手動変更
+     */
+    public function ajax_update_modified_date() {
+        $post = $this->verify_ajax_post();
+
+        if (!KSEO_Lock_State::is_published_for_lock($post)) {
+            wp_send_json_error(array('message' => '公開前の投稿は更新日を変更できません。公開後に変更してください。'), 400);
+        }
+
+        if (KSEO_Lock_Handler::has_future_publish_date($post)) {
+            wp_send_json_error(array('message' => '公開日時が未来のため、更新日を変更できません。'), 400);
+        }
+
+        $mode = isset($_POST['mode']) ? sanitize_key(wp_unslash($_POST['mode'])) : 'custom';
+
+        if ('post_date' === $mode) {
+            $requested_local = $post->post_date;
+            $requested_gmt = KSEO_Lock_State::is_valid_date($post->post_date_gmt) ? $post->post_date_gmt : get_gmt_from_date($post->post_date);
+        } else {
+            $raw = isset($_POST['new_date']) ? sanitize_text_field(wp_unslash($_POST['new_date'])) : '';
+            $datetime = self::parse_input_datetime($raw);
+            if (null === $datetime) {
+                wp_send_json_error(array('message' => '日時の形式が正しくありません。'), 400);
+            }
+            if ($datetime->getTimestamp() - time() >= MINUTE_IN_SECONDS) {
+                wp_send_json_error(array('message' => '未来の日時は指定できません。'), 400);
+            }
+            $requested_local = $datetime->format('Y-m-d H:i:s');
+            $requested_gmt = $datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        }
+
+        list($local, $gmt) = KSEO_Lock_State::normalize_dates($requested_local, $requested_gmt, $post->post_date, $post->post_date_gmt);
+        $adjusted_to_post_date = ('post_date' !== $mode) && ($local === $post->post_date) && ($requested_local !== $post->post_date);
+
+        // 更新日の 2 列だけを書き込み、成功したらロックを有効にしてから更新フックを発火する
+        $write = KSEO_Lock_Handler::write_modified_date($post->ID, $local, $gmt, true);
+
+        if (!$write['ok']) {
+            $state = self::build_state(get_post($post->ID));
+            $state['message'] = '更新日を書き込めませんでした。' . ($write['error'] !== '' ? '（' . $write['error'] . '）' : '');
+            wp_send_json_error($state, 500);
+        }
+
+        // 表示とメッセージは DB から読み直した値で組み立てる
+        $state = self::build_state(get_post($post->ID));
+        if ($state['locked']) {
+            $state['message'] = sprintf('更新日を %s に変更し、ロックを有効にしました（解除する場合はチェックを外してください）。', $state['modified_display']);
+        } else {
+            $state['message'] = sprintf('更新日を %s に変更しましたが、ロックを有効にできませんでした。チェックを入れてロックしてください。', $state['modified_display']);
+        }
+        if ($adjusted_to_post_date) {
+            $state['message'] .= '公開日より前にはできないため、公開日時に合わせました。';
+        }
+
+        wp_send_json_success($state);
     }
 }

@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Lock Modified Date</h2>
-        <span class="version">v1.0.1</span>
+        <span class="version">v1.0.2</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -39,8 +39,16 @@
         </thead>
         <tbody>
             <tr>
-                <td>ロックが正しく保存されていない</td>
-                <td>メタボックスでロックをオンにした後、投稿を保存（更新）してください。保存せずにページを離れるとロック状態が反映されません。</td>
+                <td>ロックが ON になっていない</td>
+                <td>メタボックスの「更新日をロックする」にチェックが入っているか確認してください。切り替えるとその場で保存され、「ロックを有効にしました」と表示されます。</td>
+            </tr>
+            <tr>
+                <td>投稿がまだ公開されていない</td>
+                <td>下書き・レビュー待ち・予約中の投稿はロックが効きません。ロックは公開後に有効になります。</td>
+            </tr>
+            <tr>
+                <td>投稿タイプが対象外になっている</td>
+                <td>設定画面の「ロック機能を使う投稿タイプ」にチェックが入っているか確認してください。</td>
             </tr>
             <tr>
                 <td>他のプラグインが更新日を上書きしている</td>
@@ -68,7 +76,7 @@
             </tr>
             <tr>
                 <td>表示オプションで非表示にされている</td>
-                <td>投稿エディタ画面右上の「表示オプション」を開き、「更新日ロック」にチェックが入っていることを確認してください。</td>
+                <td>投稿エディタ画面右上の「表示オプション」（ブロックエディタでは「設定」の「パネル」）を開き、「Kashiwazaki SEO Lock Modified Date」が表示対象になっていることを確認してください。また、設定画面で投稿タイプが対象になっているか確認してください。</td>
             </tr>
             <tr>
                 <td>ユーザー権限が不足している</td>
@@ -111,12 +119,16 @@
         </thead>
         <tbody>
             <tr>
-                <td>日付フォーマットが不正</td>
-                <td>正しい日付フォーマット（YYYY-MM-DD HH:MM:SS）で入力してください。</td>
+                <td>「更新日を変更」を押していない</td>
+                <td>日時を選んだだけでは反映されません。メタボックスの「更新日を変更」を押してください（投稿の保存は不要です）。</td>
             </tr>
             <tr>
-                <td>投稿の保存を忘れている</td>
-                <td>日付を変更した後、必ず投稿を保存（更新）してください。</td>
+                <td>未来の日時・公開前の投稿</td>
+                <td>未来の日時は指定できません。公開前の投稿は更新日を変更できません。メッセージの内容を確認してください。</td>
+            </tr>
+            <tr>
+                <td>他のプラグインが保存時に更新日を上書きしている</td>
+                <td>「更新日を書き込めませんでした」と表示された場合は、更新日を変更する他のプラグインを一時的に無効化して確認してください。</td>
             </tr>
         </tbody>
     </table>
@@ -176,8 +188,9 @@
     <ul>
         <li>設定データは <code>wp_options</code> テーブルに <code>kseo_lock_modified_date_*</code> キーで管理</li>
         <li>個別のロック状態は各投稿の <code>post_meta</code> に保存</li>
-        <li>2つのAJAXハンドラーで一括ロック・アンロック操作を処理</li>
-        <li>投稿保存時のフック（<code>wp_insert_post_data</code>）でロック状態を確認し、更新日の上書きを防止</li>
+        <li>AJAX でロックの切り替え・更新日の手動変更・表示の同期・一括ロック/解除・日付の修復を処理</li>
+        <li>投稿保存時のフィルター（<code>wp_insert_post_data</code> / 添付ファイルは <code>wp_insert_attachment_data</code>）で保存済みのロック状態を確認し、更新日の上書きを防止</li>
+        <li>予約投稿の自動公開時（<code>transition_post_status</code>）に、ロック中の投稿の更新日が公開日より前に残らないよう補正</li>
     </ul>
 
     <h3>ロック処理フロー</h3>
@@ -185,34 +198,34 @@
     <div class="step">
         <span class="step-number">1</span>
         <div class="step-body">
-            <p>投稿の保存時に、WordPressが <code>wp_insert_post_data</code> フィルターを実行します。</p>
+            <p>投稿の保存時に、WordPress が <code>wp_insert_post_data</code>（添付ファイルは <code>wp_insert_attachment_data</code>）フィルターを実行します。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">2</span>
         <div class="step-body">
-            <p>プラグインが該当投稿の <code>post_meta</code> からロック状態を確認します。</p>
+            <p>プラグインが、保存前の投稿が公開済みか、投稿タイプが対象か、<code>post_meta</code> に保存されたロック状態（未記録なら設定のデフォルト）を確認します。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">3</span>
         <div class="step-body">
-            <p>ロックがオンの場合、<code>post_modified</code> と <code>post_modified_gmt</code> を保存前の値に復元し、更新日の変更を防止します。</p>
+            <p>ロックが有効な場合、<code>post_modified</code> と <code>post_modified_gmt</code> を保存前の値に戻します（GMT が未記録なら補い、公開日より前なら公開日時に揃えます）。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">4</span>
         <div class="step-body">
-            <p>手動日付変更が指定されている場合は、ロック状態に関わらず指定した日時を <code>post_modified</code> に設定します。</p>
+            <p>「更新日を変更」を押した場合は、<code>post_modified</code> / <code>post_modified_gmt</code> の 2 列だけを指定した日時に書き換え、ロックを ON にしてから WordPress の更新フック（<code>save_post</code> など）を発火します。本文やタイトルには触れません。</p>
         </div>
     </div>
 
     <div class="callout callout-note">
         <div class="callout-title">補足</div>
-        <p>カスタムテーブルやCronイベントは使用しないため、プラグインの削除時にデータベースに不要なデータが残ることはありません。<code>wp_options</code> の設定値と各投稿の <code>post_meta</code> のみが削除対象です。</p>
+        <p>カスタムテーブルやCronイベントは使用しません。プラグインを削除しても、<code>wp_options</code> の設定値と各投稿の <code>post_meta</code>（ロック状態）はデータベースに残ります。</p>
     </div>
 
     <nav class="page-nav">
@@ -222,7 +235,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.1</p>
+        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.2</p>
     </footer>
 </main>
 

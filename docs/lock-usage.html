@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Lock Modified Date</h2>
-        <span class="version">v1.0.1</span>
+        <span class="version">v1.0.2</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -25,115 +25,110 @@
 
 <main class="content">
     <h1>使い方</h1>
-    <p class="lead">投稿ごとの個別ロック、手動日付変更、全投稿の一括ロック・アンロック操作について解説します。</p>
+    <p class="lead">投稿ごとのロック、更新日の手動変更、全投稿の一括ロック・解除、日付の不整合の修復について解説します。</p>
+
+    <h2>ロックの考え方</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">状態</th>
+                <th>投稿を保存したときの更新日</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ロック ON（公開済み）</td>
+                <td>変わりません。</td>
+            </tr>
+            <tr>
+                <td>ロック OFF（公開済み）</td>
+                <td>保存した日時になります（WordPress 標準の動作）。</td>
+            </tr>
+            <tr>
+                <td>未公開（下書き・レビュー待ち・予約）</td>
+                <td>ロックの状態に関係なく WordPress 標準の動作で、ロックは公開後に有効になります。公開操作をした場合は、その時点の日時が更新日になります。予約投稿が自動で公開された場合、ロック ON なら更新日を公開日時以降に揃え、ロック OFF なら WordPress 標準どおり最後に保存した日時のままです。</td>
+            </tr>
+        </tbody>
+    </table>
 
     <h2>個別ロック操作</h2>
 
-    <p>投稿エディタのメタボックスから、個別の投稿に対して更新日のロック・アンロックを行います。</p>
+    <p>投稿の編集画面にある「Kashiwazaki SEO Lock Modified Date」メタボックスで、投稿ごとにロックを切り替えます。</p>
 
     <figure class="screenshot">
-        <img src="images/screenshots/02-lockmod-detail.png" alt="更新日ロック設定" class="lightbox-trigger">
-        <figcaption>更新日ロックの操作画面</figcaption>
+        <img src="images/screenshots/02-lockmod-detail.png" alt="投稿編集画面の Kashiwazaki SEO Lock Modified Date メタボックス" width="280" class="lightbox-trigger">
+        <figcaption>投稿編集画面のメタボックス（ロックの切り替えと更新日の手動変更）</figcaption>
     </figure>
-
-    <h3>ロックをオンにする</h3>
 
     <div class="step">
         <span class="step-number">1</span>
         <div class="step-body">
-            <p>投稿の編集画面を開き、「更新日ロック」メタボックスを確認します。</p>
+            <p>投稿の編集画面を開き、「Kashiwazaki SEO Lock Modified Date」メタボックスを確認します。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">2</span>
         <div class="step-body">
-            <p>ロックトグルをオンに切り替えます。</p>
-        </div>
-    </div>
-
-    <div class="step">
-        <span class="step-number">3</span>
-        <div class="step-body">
-            <p>投稿を保存（更新）します。ロックがオンの間は、投稿を何度保存しても post_modified の日時は変更されません。</p>
+            <p>「更新日をロックする」のチェックを切り替えます。<strong>切り替えた時点で保存されます</strong>（投稿の保存は不要です）。メタボックスに「ロックを有効にしました」などのメッセージが表示されます。</p>
         </div>
     </div>
 
     <div class="callout callout-tip">
         <div class="callout-title">ヒント</div>
-        <p>ロック状態は投稿のメタデータ（post_meta）に保存されるため、エディタを閉じてもロック状態は維持されます。</p>
+        <p>切り替えの保存中は、投稿の保存ボタンが一時的に使えなくなります。メッセージが表示されてから投稿を保存してください。</p>
     </div>
 
-    <h2>手動日付変更</h2>
+    <h2>更新日の手動変更</h2>
 
-    <p>更新日を任意の日時に手動で変更できます。コンテンツの大幅なリライト時や、コンテンツリフレッシュ戦略の一環として活用できます。</p>
+    <p>更新日を任意の日時に変更できます。コンテンツを大幅にリライトしたときなどに使います。</p>
 
     <div class="step">
         <span class="step-number">1</span>
         <div class="step-body">
-            <p>投稿の編集画面で「更新日ロック」メタボックスの日付変更フィールドを確認します。</p>
+            <p>メタボックスの「更新日を手動で変更」で日時を選びます。公開日と同じにしたい場合は「公開日と同じにする」を押します（公開日時を秒まで同じにします）。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">2</span>
         <div class="step-body">
-            <p>変更したい日時を入力します。過去の日付・未来の日付どちらも設定可能です。</p>
+            <p>「更新日を変更」を押します。<strong>押した時点で反映されます</strong>（投稿の保存は不要です）。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">3</span>
         <div class="step-body">
-            <p>投稿を保存（更新）します。post_modified が指定した日時に変更されます。</p>
+            <p>変更と同時にロックが自動で ON になります。以降に投稿を保存しても、手動で指定した更新日は変わりません。ロックを解除すると、次に保存したときに更新日が保存時刻になります。</p>
         </div>
     </div>
 
     <div class="callout callout-warning">
         <div class="callout-title">注意</div>
-        <p>手動で日付を変更した場合、ロック状態に関係なく指定した日時が反映されます。日付変更後にロックをオンにすることで、以降の編集で日付が再び変わることを防止できます。</p>
+        <ul>
+            <li>日時を選んだだけでは反映されません。「まだ反映されていません」と表示されている間に投稿を保存すると、警告が表示されます。</li>
+            <li>未来の日時は指定できません。公開日より前の日時を指定した場合は、公開日時に合わせます。</li>
+            <li>公開前の投稿は更新日を変更できません。公開後に変更してください。</li>
+        </ul>
     </div>
 
-    <h2>一括ロック・アンロック</h2>
+    <h2>一括ロック・解除</h2>
 
-    <p>全投稿に対して一括でロック・アンロックを実行できます。サイトの大規模なメンテナンス時に便利な機能です。</p>
-
-    <h3>一括ロック</h3>
+    <p>設定画面から、対象の投稿タイプのすべての投稿を一括でロック・解除できます。投稿一覧の「一括操作」からも、選んだ投稿のロック・解除ができます。</p>
 
     <div class="step">
         <span class="step-number">1</span>
         <div class="step-body">
-            <p>プラグインの設定画面を開きます。</p>
+            <p>管理画面の「Kashiwazaki SEO Lock Modified Date」を開きます。</p>
         </div>
     </div>
 
     <div class="step">
         <span class="step-number">2</span>
         <div class="step-body">
-            <p>「一括ロック」ボタンをクリックします。確認ダイアログが表示されます。</p>
-        </div>
-    </div>
-
-    <div class="step">
-        <span class="step-number">3</span>
-        <div class="step-body">
-            <p>確認後、AJAX経由で全投稿のロックが実行されます。処理完了後、結果が画面に表示されます。</p>
-        </div>
-    </div>
-
-    <h3>一括アンロック</h3>
-
-    <div class="step">
-        <span class="step-number">1</span>
-        <div class="step-body">
-            <p>プラグインの設定画面で「一括アンロック」ボタンをクリックします。</p>
-        </div>
-    </div>
-
-    <div class="step">
-        <span class="step-number">2</span>
-        <div class="step-body">
-            <p>確認ダイアログで承認すると、AJAX経由で全投稿のロックが解除されます。</p>
+            <p>「すべてロック」または「すべてロック解除」を押し、確認ダイアログで承認します。処理が終わると件数が表示されます。</p>
         </div>
     </div>
 
@@ -146,20 +141,19 @@
         </thead>
         <tbody>
             <tr>
-                <td>一括ロック</td>
-                <td>全投稿の更新日をロック状態にします。以降の編集で更新日が変更されません。</td>
+                <td>すべてロック</td>
+                <td>対象の投稿タイプのすべての投稿をロック ON にします。</td>
             </tr>
             <tr>
-                <td>一括アンロック</td>
-                <td>全投稿のロックを解除します。以降の編集で更新日が通常どおり自動更新されます。</td>
+                <td>すべてロック解除</td>
+                <td>対象の投稿タイプのすべての投稿をロック OFF にします。以降の保存で更新日が通常どおり変わります。</td>
             </tr>
         </tbody>
     </table>
 
-    <div class="callout callout-note">
-        <div class="callout-title">補足</div>
-        <p>一括操作はAJAXで非同期的に処理されるため、投稿数が多い場合でもページがフリーズすることはありません。処理の進捗は画面上に表示されます。</p>
-    </div>
+    <h2>日付の不整合の確認・修復</h2>
+
+    <p>設定画面の「日付の不整合を確認・修復」に、更新日（GMT）が記録されていない投稿と、更新日が公開日より前になっている投稿の件数が表示されます（ロック OFF の投稿も含みます）。「修復する」を押すと、GMT の更新日を補い、公開日より前の更新日を公開日時に合わせます。ロックの状態は変わりません。自動では書き換えないため、件数を確認してから実行してください。</p>
 
     <h2>運用上の注意点</h2>
 
@@ -173,19 +167,35 @@
         <tbody>
             <tr>
                 <td>post_modified_gmt</td>
-                <td>post_modified と合わせて post_modified_gmt も同様にロック・変更されます。</td>
+                <td>post_modified と合わせて post_modified_gmt もロック・変更されます。</td>
+            </tr>
+            <tr>
+                <td>公開日を変更した場合</td>
+                <td>ロック中でも、公開日を更新日より後に動かすと、更新日は公開日時に揃います。</td>
+            </tr>
+            <tr>
+                <td>下書きに戻して再公開した場合</td>
+                <td>未公開の間はロックが効かないため、再公開した時点の日時が更新日になります。</td>
+            </tr>
+            <tr>
+                <td>対象外にした投稿タイプ</td>
+                <td>設定でチェックを外した投稿タイプは、ロック設定が残っていても更新日が通常どおり変わります。再度チェックすると元の設定で有効に戻ります。</td>
+            </tr>
+            <tr>
+                <td>メディア（添付ファイル）</td>
+                <td>設定で「メディア」を対象にすると、添付ファイルの編集時にも更新日がロックされます。</td>
             </tr>
             <tr>
                 <td>リビジョン</td>
-                <td>WordPressのリビジョン機能には影響しません。リビジョンは通常どおり作成されます。</td>
+                <td>ロック中の保存で本文が変わらなければリビジョンは増えません。更新日の手動変更や修復では、リビジョンがまだ 1 件も無い投稿に限り、通常の更新と同じく最初のリビジョンが作られることがあります。</td>
             </tr>
             <tr>
-                <td>XMLサイトマップ</td>
-                <td>ロック状態の投稿は、XMLサイトマップの lastmod にロックされた日付が使用されます。</td>
+                <td>サイトマップ・キャッシュ</td>
+                <td>手動変更と修復は、更新日だけを書き換えたあとに WordPress の更新フック（<code>save_post</code> など。メディアは <code>attachment_updated</code> など）を発火するため、更新を検知するサイトマップやキャッシュ系のプラグインにも反映されます。本文やタイトルには触れません。</td>
             </tr>
             <tr>
-                <td>REST API</td>
-                <td>REST API経由の更新でもロック機能は有効です。</td>
+                <td>REST API・クイック編集</td>
+                <td>ブロックエディタ、クイック編集、一括編集、REST API、WP-CLI からの更新でもロックは有効です。</td>
             </tr>
         </tbody>
     </table>
@@ -197,7 +207,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.1</p>
+        <p>プラグイン: Kashiwazaki SEO Lock Modified Date v1.0.2</p>
     </footer>
 </main>
 

@@ -1,9 +1,9 @@
 # Kashiwazaki SEO Lock Modified Date
 
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/License-GPL--2.0--or--later-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)](https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-lock-modified-date/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.2-blue.svg)](https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-lock-modified-date/releases)
 
 WordPress投稿の更新日（post_modified）をロックし、SEO最適化のために更新日を意図的にコントロールできます。軽微な修正時に更新日を変えず、必要な時だけ手動で変更可能。
 
@@ -19,6 +19,7 @@ WordPress投稿の更新日（post_modified）をロックし、SEO最適化の�
 - **公開日同期**: ワンクリックで公開日と同じに設定
 - **デフォルトロック設定**: 新規投稿のデフォルトロック状態を設定で切り替え可能
 - **一括ロック/解除**: 投稿一覧や設定画面から全投稿を一括操作
+- **日付の不整合の修復**: 更新日が公開日より前・GMT 未記録の投稿を確認して修復
 - **プラグイン一覧リンク**: 設定画面への直接アクセス
 
 ## クイックスタート
@@ -27,7 +28,7 @@ WordPress投稿の更新日（post_modified）をロックし、SEO最適化の�
 
 1. プラグインファイルを `/wp-content/plugins/` ディレクトリにアップロード
 2. WordPress管理画面でプラグインを有効化
-3. 設定 > Kashiwazaki SEO Lock Modified Date で設定
+3. 管理画面メニューの「Kashiwazaki SEO Lock Modified Date」で設定
 
 ### 基本設定
 
@@ -41,39 +42,42 @@ WordPress投稿の更新日（post_modified）をロックし、SEO最適化の�
 
 投稿編集画面のサイドバーにある「Kashiwazaki SEO Lock Modified Date」メタボックスで：
 
-1. **「更新日をロックする」にチェック**: 投稿を保存しても更新日が変わりません
-2. **チェックを外す**: 通常通り更新日が更新されます
+1. **「更新日をロックする」にチェック**: 公開済みの投稿を保存しても更新日が変わりません
+2. **チェックを外す**: 保存するたびに更新日が保存時刻になります
+
+チェックの切り替えはその場で保存されます（投稿の保存は不要です）。下書き・予約など未公開の投稿はロックが効かず、ロックは公開後に有効になります（公開操作をした場合はその時点の日時が更新日になります）。
 
 ### 手動で更新日を変更
 
 メタボックス内の日時ピッカーを使用：
 
-1. 任意の日時を選択
+1. 任意の日時を選択（未来の日時は指定できません。公開日より前の日時は公開日時に合わせます）
 2. 「更新日を変更」ボタンをクリック
-3. AJAXで即座に反映（ページリロード不要）
+3. その場で反映され、ロックが自動で ON になります（投稿の保存は不要）
 
 ### 公開日と同じにする
 
-「公開日と同じにする」ボタンをクリックすると、更新日が公開日と同じになります。
+「公開日と同じにする」を押してから「更新日を変更」を押すと、更新日が公開日時（秒まで）と同じになります。
 
 ## 技術仕様
 
 ### システム要件
 
-- WordPress 5.0以上
+- WordPress 6.0以上
 - PHP 7.4以上
 - jQuery（WordPress同梱版）
 
 ### フック
 
-- `wp_insert_post_data`: 更新日のロック処理
-- `wp_insert_post`: デフォルトロック設定
+- `wp_insert_post_data` / `wp_insert_attachment_data`: 更新日のロック処理
+- `wp_insert_post` / `add_attachment`: 新規作成時のロック状態の記録
+- `transition_post_status`: 予約投稿の自動公開時の更新日の補正（ロック中の投稿のみ）
 - `plugin_action_links`: プラグイン一覧に設定リンク追加
 
 ### データ保存
 
 - **メタキー**: `_kseo_lock_modified_date`
-- **オプション**: `kseo_lock_modified_date_post_types`
+- **オプション**: `kseo_lock_modified_date_post_types`、`kseo_lock_modified_date_default_locked`
 
 ## ライセンス
 
